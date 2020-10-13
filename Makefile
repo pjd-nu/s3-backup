@@ -13,5 +13,7 @@ LDLIBS := -lavl -ls3 -lcurl -luuid -lxml2 -lssl -lcrypto $(EXTRA_LIBS)
 CFLAGS = -O -ggdb3 -I $(S3DIR)/inc
 LDFLAGS = -L $(S3DIR)/build/lib
 
+all: s3backup s3mount
+
 s3mount: LDLIBS += -lfuse
 
