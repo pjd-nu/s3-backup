@@ -49,6 +49,7 @@ static struct argp_option options[] = {
     {"access-key",  'a', "KEY",    0, "S3 access key"},
     {"secret-key",  's', "KEY",    0, "S3 secret key"},
     {"noio",        'n', 0,        0, "no output (test only)"},
+    {"exclude",     'e', "FILE",   0, "exclude file"},
     { 0 }
 };
 
@@ -99,6 +100,7 @@ struct state {
     int         in_fd;
     char       *dir;
     int         local;
+    char       *exclude[16];
     
     char       *hostname;
     int         protocol;
@@ -184,6 +186,14 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
         break;
     case 'l':
         s->local = 1;
+        break;
+    case 'e':
+        for (int i = 0; i < 16; i++) {
+            if (s->exclude[i] == NULL) {
+                s->exclude[i] = arg;
+                break;
+            }
+        }
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0)
@@ -922,6 +932,15 @@ int store_node(struct state *s, struct s3dirent *_d3e, struct s3dirent **_d3e_p,
         *_d3e_p = next_de(_d3e);
 }
 
+int exclude(struct state *s, char *dir, char *file)
+{
+    char path[strlen(dir)+strlen(file)+10];
+    sprintf(path, "%s/%s", dir, file);
+    for (int i = 0; i < 16 && s->exclude[i]; i++)
+        if (!strcmp(s->exclude[i], path))
+            return 1;
+    return 0;
+}
 
 /*
  * offset - current offset (in sectors) in output
@@ -966,6 +985,11 @@ int store_dir(struct state *s, off_t offset, int fd, struct s3dirent *_d3e,
             strcmp(de->d_name, "..") == 0)
             continue;
 
+        if (exclude(s, path, de->d_name)) {
+            fprintf(stderr, "excluding %s/%s\n", path, de->d_name);
+            continue;
+        }
+        
         /* really big backups can be split into multiple increments
          */
         if (offset >= s->stopafter)
@@ -987,6 +1011,17 @@ int store_dir(struct state *s, off_t offset, int fd, struct s3dirent *_d3e,
          */
         struct stat sb2;
 
+        /* special case to avoid blocking on named pipes
+         */
+        if (fstatat(fd, de->d_name, &sb2, AT_SYMLINK_NOFOLLOW) == 0)
+            if (S_ISFIFO(sb2.st_mode)) {
+                fprintf(stderr, "skipping %s/%s: %s\n",
+                        path, de->d_name, strerror(errno));
+                goto skip;
+            }
+
+        /* see explanation of O_NOFOLLOW and O_PATH in 'man 2 open'
+         */
         int fd2 = openat(fd, de->d_name, O_RDONLY | O_NOFOLLOW);
         if (fd2 < 0 && errno == ELOOP)
             fd2 = openat(fd, de->d_name, O_RDONLY | O_PATH | O_NOFOLLOW);
