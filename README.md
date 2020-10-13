@@ -2,6 +2,10 @@
 
 **s3-backup** performs a full or incremental backup of a directory hierarchy to a single S3 object; **s3mount** mounts a backup as a read-only FUSE file system.
 
+Peter Desnoyers, Northeastern University
+Solid-State Storage Lab
+p.desnoyers@northeastern.edu
+
 ## Usage
 
 environment variables: S3\_HOSTNAME, S3\_ACCESS\_KEY\_ID, S3\_SECRET\_ACCESS\_KEY 
