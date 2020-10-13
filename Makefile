@@ -13,6 +13,8 @@ LDLIBS := -lavl -ls3 -lcurl -luuid -lxml2 -lssl -lcrypto $(EXTRA_LIBS)
 CFLAGS = -O -ggdb3 -I $(S3DIR)/inc
 LDFLAGS = -L $(S3DIR)/build/lib
 
+PREFIX=/usr/local
+
 all: deps s3backup s3mount
 
 deps:
@@ -22,6 +24,10 @@ deps:
 		echo "Missing: libavl-dev"; false; fi
 	@if [ ! -f /usr/include/fuse.h ] ; then \
 		echo "Missing: libfuse-dev"; false; fi
+
+install:
+	install s3backup $(PREFIX)/bin
+	install s3mount $(PREFIX)/bin
 
 s3mount: LDLIBS += -lfuse
 
