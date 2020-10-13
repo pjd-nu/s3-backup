@@ -12,9 +12,8 @@ environment variables: S3\_HOSTNAME, S3\_ACCESS\_KEY\_ID, S3\_SECRET\_ACCESS\_KE
 (also available as command line options)
 
 s3-backup --bucket BUCKET [--incremental OBJECT] \[--max #\] OBJECT /path
-s3mount -o bucket=BUCKET[,http] OBJECT /mountpoint
 
-*todo: parse bucket/key*
+s3mount -o bucket=BUCKET[,http] OBJECT /mountpoint
 
 ## Description
 
@@ -44,6 +43,7 @@ On Alpine you'll need argp-standalone as well. (I use Alpine and alpinewall for 
 
 ## Planned additions
 
+- parse bucket/key
 - exclusion rules. Currently mount points are skipped; it would be useful to be able to specify additional rules for skipping e.g. `/tmp`
 - config file support. All parameters are currently passed on the command line or environment variables
 - inode numbers and hard links. Support for inode numbers (using the original host numbers) is commented out; support for hard links is designed but the usefulness in a read-only file system is debatable.
