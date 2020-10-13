@@ -32,6 +32,7 @@ Additional features:
 To build it on Ubuntu you'll need the following (I think - I haven't tested on a clean system):
 
 - libs3 - a simple C library for S3. You'll need to grab it from https://github.com/bji/libs3 and build it. (make; make install will put it in /usr/local)
+**warning:** you need to apply the included patch to libs3 to make it 64-bit safe, at least until they accept my bug report.
 - libcurl, libxml2, libssl-dev - for building libs3
 - libavl-dev, libuuid-dev
 
@@ -59,8 +60,46 @@ Objects are divided into 512-byte sectors, and sectors are addressed by an 8-byt
 |------|----------|
 
 ### Directory entries
+
 Variable-sized directory entries look like this:
 
 | mode : 16 | uid : 16 | gid : 16 | ctime : 32 | offset : 64 | size : 64 | namelen : 8 | name |
 |---------|-------|-------|---------|---------|--------|----|---|
+
+Note that names are not null-terminated; `printf("%.*s", de->namelen, de->name)` is your friend. There's a helper function `next_de(struct s3_dirent*)` to iterate through a directory.
+
+### Object header
+
+All fields (except versions) are 4 bytes:
+|magic | version | flags | len | nversions | <versions> |
+|----|----|----|----|----|----|
+
+`len` is the length of the header in sectors. (although technically I'm not sure it's needed)
+
+Versions are ordered newest (this object) to oldest, and look like this:
+
+|   uuid | namelen : 16 | name |
+|----|----|-----|
+
+again with no null termination, and a iterator function `next_version`. For constructing offsets they're numbered in reverse, with the oldest version numbered 0.
+
+### Object trailer
+
+The last sector of the object combines a directory (starting at offset 0) and file system statistics (at the end of the sector)
+
+- first entry: this points to the root directory
+- second entry: hidden file, directory offsets
+- third entry: packed directory contents
+
+The directory offsets table has entries of the form:
+
+|    offset : 64 | nbytes : 32 |
+|----|----|
+
+If you add then up, you can figure out the byte offset of each directory copy in the packed directory contents. This lets us load all the directories into memory at the beginning so we don't have to go back to S3 for directory lookups. Among other things, this makes incrementals *way* faster.
+
+## Implementation cleanup
+- the `s3mount` directory could be cached in a file instead of memory, either `mmap`ed or just accessed via `pread`, which would reduce memory usage when it's not active.
+- transforming the dirloc table to include a byte offset in the packed directories would allow getting rid of libavl - just use binary search to find a directory.
+- dump the directory location table to a file, like the packed directories, rather than saving in a buffer
 

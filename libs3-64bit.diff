@@ -1,0 +1,29 @@
+diff --git a/inc/request.h b/inc/request.h
+index a80971a..1741f82 100644
+--- a/inc/request.h
++++ b/inc/request.h
+@@ -81,7 +81,7 @@ typedef struct RequestParams
+     const S3GetConditions *getConditions;
+ 
+     // Start byte
+-    size_t startByte;
++    off_t startByte;
+ 
+     // Byte count
+     size_t byteCount;
+diff --git a/src/request.c b/src/request.c
+index dd66863..ea01c82 100644
+--- a/src/request.c
++++ b/src/request.c
+@@ -401,8 +401,9 @@ static S3Status compose_amz_headers(const RequestParams *params,
+         // If byteCount != 0 then we're just copying a range, add header
+         if (params->byteCount > 0) {
+             char byteRange[S3_MAX_METADATA_SIZE];
+-            snprintf(byteRange, sizeof(byteRange), "bytes=%zd-%zd",
+-                     params->startByte, params->startByte + params->byteCount);
++            snprintf(byteRange, sizeof(byteRange), "bytes=%lld-%lld",
++                     (long long)params->startByte,
++                     (long long)params->startByte + params->byteCount);
+             append_amz_header(values, 0, "x-amz-copy-source-range", byteRange);
+         }
+         // And the x-amz-metadata-directive header
