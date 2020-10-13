@@ -39,6 +39,7 @@ To build it on Ubuntu you'll need the following (I think - I haven't tested on a
 - libcurl, libxml2, libssl-dev - for building libs3
 - libavl-dev, libuuid-dev
 
+[edit - Makefile now checks for requirements, also the `libs3` target fetches, patches and builds libs3]
 On Alpine you'll need argp-standalone as well. (I use Alpine and alpinewall for gateway machines on a couple of my networks, so it was my first use case)
 
 ## Planned additions
