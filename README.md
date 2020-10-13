@@ -53,8 +53,14 @@ On Alpine you'll need argp-standalone as well. (I use Alpine and alpinewall for 
 S3 is an inode-less file system, vaguely like the original CD-ROM format but with 512-byte sectors, user IDs, and long file names. Describing it from the inside out:
 
 ### Offsets
-Sectors are addressed by an 8-byte address:
+Objects are divided into 512-byte sectors, and sectors are addressed by an 8-byte address:
 
 | object# : 16 | sector offset : 48 |
 |------|----------|
+
+### Directory entries
+Variable-sized directory entries look like this:
+
+| mode : 16 | uid : 16 | gid : 16 | ctime : 32 | offset : 64 | size : 64 | namelen : 8 | name |
+|---------|-------|-------|---------|---------|--------|----|---|
 
