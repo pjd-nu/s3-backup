@@ -29,6 +29,7 @@ Additional features:
 - S3 hostname, access key and secret key can be provided by parameters as well as environment variables
 - the `local` option to each program forces object names to be interpreted as local file paths, mostly for debugging purposes
 - the `--max #` indicates that backup should stop after a certain amount of data (in bytes, M and G prefixes allowed) is written, allowing large full backups to be created as a chain of somewhat smaller ones. (files will not be broken across backups, so the limit is a soft one)
+- `--exclude` lets you exclude directories or files matching a pattern, e.g excluding `.ssh` so you don't archive anyone's SSH keys
 
 ## Requirements
 
