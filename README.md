@@ -109,3 +109,4 @@ If you add then up, you can figure out the byte offset of each directory copy in
 - transforming the dirloc table to include a byte offset in the packed directories would allow getting rid of libavl - just use binary search to find a directory.
 - dump the directory location table to a file, like the packed directories, rather than saving in a buffer
 
+actually, we could get rid of libavl and use interpolation search: https://en.wikipedia.org/wiki/Interpolation_search
